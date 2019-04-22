@@ -40,9 +40,10 @@ def main(trackingnet_dir="TrackingNet", csv_dir=".", overwrite=False, chunks=[],
 
 					downloader.download(url='https://drive.google.com/uc?id={id}'.format(id=Google_drive_file_id),
 						output=destination_path,
-						quiet=True,
+						quiet=False,
 					)
 
+	return True
 
 
 if __name__ == "__main__": 
@@ -88,10 +89,15 @@ if __name__ == "__main__":
 	print("CHUNKS:", args.chunk)
 	print("DATA:", args.data)
 
-	main(trackingnet_dir=args.trackingnet_dir, 
-		csv_dir=args.csv_dir, 
-		overwrite=args.overwrite, 
-		chunks=args.chunk, 
-		data=args.data)
+	finished = False 
 
+	while not finished:
+		try:
+			finished = main(trackingnet_dir=args.trackingnet_dir, 
+				csv_dir=args.csv_dir, 
+				overwrite=args.overwrite, 
+				chunks=args.chunk, 
+				data=args.data)
+		except:
+			pass
 

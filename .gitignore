@@ -1,3 +1,6 @@
 TN_TRAIN
 TN_TEST
 *.pyc
+credentials.json
+token.pickle
+*-temp*
