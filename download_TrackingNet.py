@@ -62,7 +62,7 @@ def get_file(file_attributes):
 	if (not os.path.exists(destination_path)): 
 		downloader.download(url=f"https://drive.google.com/uc?id={file_attributes['Google_drive_file_id']}",
 						output=destination_path,
-						quiet=True,
+						quiet=False,
 					)
 
 if __name__ == "__main__": 
