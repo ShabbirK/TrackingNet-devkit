@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from tqdm import tqdm
 import argparse
-from pathos.threading import ThreadPool
+from pathos.multiprocessing import ProcessPool
 
 import downloader
 
@@ -42,7 +42,7 @@ def main(trackingnet_dir="TrackingNet", csv_dir=".", overwrite=False, chunks=[],
 			# 			quiet=False,
 			# 		)
 
-			pool = ThreadPool(nodes=5)
+			pool = ProcessPool(nodes=6)
 			file_attributes_list = [{'Google_drive_file_id': Google_drive_file_id,
 									'Google_drive_file_name': Google_drive_file_name,
 									'chunk_folder': chunk_folder,
