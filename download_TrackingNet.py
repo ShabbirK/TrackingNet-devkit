@@ -2,10 +2,9 @@ import os
 import pandas as pd
 from tqdm import tqdm
 import argparse
+from pathos.threading import ThreadPool
 
 import downloader
-
-
 
 
 def main(trackingnet_dir="TrackingNet", csv_dir=".", overwrite=False, chunks=[], data=["ANNO","ZIPS"]):
@@ -18,7 +17,6 @@ def main(trackingnet_dir="TrackingNet", csv_dir=".", overwrite=False, chunks=[],
 		#else:
 		my_data = data
 
-
 		for datum in my_data:
 
 
@@ -30,21 +28,42 @@ def main(trackingnet_dir="TrackingNet", csv_dir=".", overwrite=False, chunks=[],
 			csv_file = os.path.join(csv_dir, chunk_folder + "_" + datum.upper() + ".csv")
 			
 			df = pd.read_csv(csv_file)
-			for index, row in tqdm(df.iterrows(), desc="_".join([chunk_folder,datum]), total=len(df.index)):
 
-				Google_drive_file_id = row["link"]
-				Google_drive_file_name = row["name"]
-				destination_path = os.path.join(trackingnet_dir, chunk_folder, datum.lower(), Google_drive_file_name)
+			# for index, row in tqdm(df.iterrows(), desc="_".join([chunk_folder,datum]), total=len(df.index)):
 
-				if (not os.path.exists(destination_path)): 
+			# 	Google_drive_file_id = row["link"]
+			# 	Google_drive_file_name = row["name"]
+			# 	destination_path = os.path.join(trackingnet_dir, chunk_folder, datum.lower(), Google_drive_file_name)
 
-					downloader.download(url='https://drive.google.com/uc?id={id}'.format(id=Google_drive_file_id),
-						output=destination_path,
-						quiet=False,
-					)
+			# 	if (not os.path.exists(destination_path)): 
+
+			# 		downloader.download(url='https://drive.google.com/uc?id={id}'.format(id=Google_drive_file_id),
+			# 			output=destination_path,
+			# 			quiet=False,
+			# 		)
+
+			pool = ThreadPool(nodes=5)
+			file_attributes_list = [{'Google_drive_file_id': Google_drive_file_id,
+									'Google_drive_file_name': Google_drive_file_name,
+									'chunk_folder': chunk_folder,
+									'datum': datum.lower(),
+									'trackingnet_dir': trackingnet_dir
+									} for Google_drive_file_id, Google_drive_file_name in zip(df['link'], df['name'])]
+			
+			pool.map(get_file, file_attributes_list)
 
 	return True
 
+def get_file(file_attributes):
+
+	destination_path = os.path.join(file_attributes['trackingnet_dir'], file_attributes['chunk_folder'],
+									file_attributes['datum'], file_attributes['Google_drive_file_name'])
+
+	if (not os.path.exists(destination_path)): 
+		downloader.download(url=f"https://drive.google.com/uc?id={file_attributes['Google_drive_file_id']}",
+						output=destination_path,
+						quiet=False,
+					)
 
 if __name__ == "__main__": 
 	p = argparse.ArgumentParser(description='Download the frames for TrackingNet')
@@ -98,6 +117,8 @@ if __name__ == "__main__":
 				overwrite=args.overwrite, 
 				chunks=args.chunk, 
 				data=args.data)
+		except KeyboardInterrupt:
+			finished = True # just pausing the downloading
 		except:
 			pass
 
